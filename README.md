@@ -1,116 +1,36 @@
-# Actions Sync
+# Python environment with a requirements.txt
 
-<p align="center">
-  <img src="docs/arrow.png">
-</p>
+[![Binder](http://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/binder-examples/requirements/HEAD)
 
-This is a standalone Go tool to allow you to sync from [GitHub](https://www.github.com) to a [GitHub Enterprise instance](https://github.com/enterprise). GitHub Enterprise is referred to as `GHES` throughout this document.
+A Binder-compatible repo with a `requirements.txt` file.
 
-* Current status: **ready for production use**
-* Download from: [releases page](https://github.com/actions/actions-sync/releases/)
-* Build status: ![Actions Sync Status](https://github.com/actions/actions-sync/workflows/CI/badge.svg)
+Access this Binder at the following URL
 
-It is designed to work when:
-* The GitHub Enterprise instance is separate from the rest of the internet.
-* The GitHub Enterprise instance is connected to the rest of the internet.
+http://mybinder.org/v2/gh/binder-examples/requirements/HEAD
 
-## Connected instances
-
-When there are machines which have access to both the public internet and the GHES instance run `actions-sync sync`.
-
-**Command:**
-
-`actions-sync sync`
-
-**Arguments:**
-
-- `cache-dir` _(required)_
-   The directory in which to cache repositories as they are synced. This speeds up re-syncing.
-- `destination-url` _(required)_
-   The URL of the GHES instance to sync repositories onto.
-- `destination-token` _(required)_
-   A personal access token to authenticate against the GHES instance when uploading repositories. See [Destination token scopes](#destination-token-scopes) below.
-- `repo-name` _(optional)_
-   A single repository to be synced. In the format of `owner/repo`. Optionally if you wish the repository to be named different on your GHES instance you can provide an alias in the format: `upstream_owner/upstream_repo:destination_owner/destination_repo`
-- `repo-name-list` _(optional)_
-   A comma-separated list of repositories to be synced. Each entry follows the format of `repo-name`.
-- `repo-name-list-file` _(optional)_
-   A path to a file containing a newline separated list of repositories to be synced. Each entry follows the format of `repo-name`.
-- `actions-admin-user` _(optional)_
-   The name of the Actions admin user, which will be used for updating the chosen action. To use the default user, pass `actions-admin`. If not set, the impersonation is disabled. Note that `site_admin` scope is required in the token for the impersonation to work.
-
-**Example Usage:**
+## Notes
+The `requirements.txt` file should list all Python libraries that your notebooks
+depend on, and they will be installed using:
 
 ```
-  actions-sync sync \
-    --cache-dir "/tmp/cache" \
-    --destination-token "token" \
-    --destination-url "https://www.example.com" \
-    --repo-name actions/setup-node
+pip install -r requirements.txt
 ```
 
-## Not connected instances
+The base Binder image contains no extra dependencies, so be as
+explicit as possible in defining the packages that you need. This includes
+specifying explicit versions wherever possible.
 
-When no machine has access to both the public internet and the GHES instance:
+If you do specify strict versions, it is important to do so for *all*
+your dependencies, not just direct dependencies.
+Strictly specifying only some dependencies is a recipe for environments
+breaking over time.
 
-1. `actions-sync pull` on a machine with public internet access
-2. copy the provided `cache-dir` to a machine with access to the GHES instance
-3. run `actions-sync push` on the machine with access to the GHES instance
+[pip-compile](https://github.com/jazzband/pip-tools/) is a handy
+tool for combining loosely specified dependencies with a fully frozen environment.
+You write a requirements.in with just the dependencies you need
+and pip-compile will generate a requirements.txt with all the strict packages and versions that would come from installing that package right now.
+That way, you only need to specify what you actually know you need,
+but you also get a snapshot of your environment.
 
-**Command:**
-
-`actions-sync pull`
-
-**Arguments:**
-
-- `cache-dir` _(required)_
-   The directory to cache the pulled repositories into.
-- `repo-name` _(optional)_
-   A single repository to be synced. In the format of `owner/repo`. Optionally if you wish the repository to be named different on your GHES instance you can provide an alias in the format: `upstream_owner/upstream_repo:destination_owner/destination_repo`
-- `repo-name-list` _(optional)_
-   A comma-separated list of repositories to be synced. Each entry follows the format of `repo-name`.
-- `repo-name-list-file` _(optional)_
-   A path to a file containing a newline separated list of repositories to be synced. Each entry follows the format of `repo-name`.
-
-**Example Usage:**
-
-```
-  bin/actions-sync pull \
-    --cache-dir "/tmp/cache" \
-    --repo-name actions/setup-node
-```
-
-**Command:**
-
-`actions-sync push`
-
-**Arguments:**
-
-- `cache-dir` _(required)_
-   The directory containing the repositories fetched using the `pull` command.
-- `destination-url` _(required)_
-   The URL of the GHES instance to sync repositories onto.
-- `destination-token` _(required)_
-   A personal access token to authenticate against the GHES instance when uploading repositories. See [Destination token scopes](#destination-token-scopes) below.
-- `repo-name`, `repo-name-list` or `repo-name-list-file` _(optional)_
-   Limit push to specific repositories in the cache directory.
-- `actions-admin-user` _(optional)_
-   The name of the Actions admin user, which will be used for updating the chosen action. To use the default user, pass `actions-admin`. If not set, the impersonation is disabled. Note that `site_admin` scope is required in the token for the impersonation to work.
-
-**Example Usage:**
-
-```
-  bin/actions-sync push \
-    --cache-dir "/tmp/cache" \
-    --destination-token "token" \
-    --destination-url "https://www.example.com"
-```
-
-## Destination token scopes
-
-When creating a personal access token include the `repo` and `workflow` scopes. Include the `site_admin` scope (optional) if you want organizations to be created as necessary or you want to use the impersonation logic for the `push` or `sync` commands.
-
-## Contributing
-
-If you would like to contribute your work back to the project, please see
-[`CONTRIBUTING.md`](CONTRIBUTING.md).
+In this example we include the library `seaborn` which will be installed in
+the environment, and our notebook uses it to plot a figure.
